@@ -1,0 +1,29 @@
+body{
+    background-color: white;
+    color: black;
+    margin: 0;
+}
+
+.superior{
+    background-color: black;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 75px;
+    border-color: black;
+}
+
+.inicioSe {
+    position: absolute;
+    right: 25px;
+    top: 20px;
+    justify-content: center;
+    list-style-type: none;
+}
+
+.no_sub{
+    text-decoration: none;
+    color: rgb(255, 255, 255);
+    font-size: 25px;    
+}

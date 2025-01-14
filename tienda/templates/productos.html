@@ -1,0 +1,22 @@
+{% extends 'layout/base.html' %}
+
+{% load static %}
+
+{% block titulo %}
+Detalle del Producto
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'styles/productos.css' %}">
+{% endblock %}
+
+{% block body %}
+    <div class="producto-detalle">
+        <img src="{{ producto.imagen1.url }}" alt="{{ producto.nombre }}" class="producto-imagen">
+        <h1 class="nombrepro">{{ producto.nombre }}</h1>
+        <p class="descripcionpro">{{ producto.descripcion }}</p>
+        <p class="preciopro">Precio: ${{ producto.precio }}</p>
+        <p class="cantidadpro">Cantidad disponible: {{ producto.cantidad }}</p>
+        <p class="especificacionespro">{{ producto.especificaciones }}</p>
+    </div>
+{% endblock %}
