@@ -1,24 +1,52 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from .models import Usuario, Producto
-from .forms import Login, Register, Product
+from .models import Producto, Usuario, Carrito, CarritoProducto
+from .forms import Login, Register, Product, PerfilForm, UserChangeForm
 from django.shortcuts import get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib import messages
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.files.storage import default_storage
+from django.views.decorators.csrf import csrf_exempt
 
+def es_administrador(user):
+    return user.is_staff
 
 # Create your views here.
 def index(request):
-    return render(request, 'index.html')
-
-def login(request):
-    if request.method == 'GET':
-        return render(request, 'login_register.html',{
-        'form_L': Login(), 'form_R': Register()
+    producto = Producto.objects.all()
+    return render(request, 'index.html', {
+        'productos': producto
     })
+
+@csrf_exempt
+def login_view(request):
+    if request.method == 'POST':
+        form = Login(request.POST)
+        if form.is_valid():
+            correo = form.cleaned_data['correo']
+            contraseña = form.cleaned_data['contraseña']
+            
+            try:
+                user = Usuario.objects.get(email=correo)
+            except Usuario.DoesNotExist:
+                user = None
+
+            if user and user.check_password(contraseña):  
+                login(request, user) 
+                messages.success(request, '¡Has iniciado sesión exitosamente!')
+                return redirect('catalogo') 
+            else:
+                messages.error(request, 'Correo o contraseña incorrectos.')
+                return redirect('login')  
+
     else:
-        Usuario.objects.get(correo=request.POST['correo'], contraseña=request.POST['contraseña'])
-        return redirect('catalogo')
+        form = Login()
+    
+    return render(request, 'login_register.html', {'form_L': form})
+
+
 
 def cerrar_se(request):
     logout(request)
@@ -26,23 +54,37 @@ def cerrar_se(request):
     return redirect('index')
 
 def register(request):
-    if request.method == 'GET':
-        return render(request, 'register.html',{
-        'form_R': Register()
-    })
+    if request.method == 'POST':
+        form = Register(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            correo = form.cleaned_data['correo']
+            contraseña = form.cleaned_data['contraseña']
+            contraseña2 = form.cleaned_data['contraseña2']
+            
+            if contraseña == contraseña2:
+                user = Usuario.objects.create_user(username=username, email=correo, password=contraseña)
+                user.save()
+                messages.success(request, '¡Te has registrado exitosamente!')
+                return redirect('login')
+            else:
+                messages.error(request, 'Las contraseñas no coinciden.')
+    
     else:
-        Usuario.objects.create(username=request.POST['username'], correo=request.POST['correo'], contraseña=request.POST['contraseña'])
-        return redirect('login')
+        form = Register()
 
+    return render(request, 'register.html', {'form_R': form})
+
+@login_required(login_url= 'login')
 def catalogo(request):
     productos = Producto.objects.all()
+    usuario = Usuario.objects.all()
     return render(request, 'catalogo.html', {
-        'productos': productos
+        'productos': productos, 'usuario': usuario
     })
 
-from django.core.files.storage import default_storage
-from django.conf import settings
-
+@login_required(login_url='login')
+@user_passes_test(es_administrador)
 def aggproducto(request):
     if request.method == 'GET':
         return render(request, 'admin/aggproductos.html', {
@@ -89,38 +131,149 @@ def aggproducto(request):
 
         producto.save()
 
-        return redirect('catalogo')
+        return redirect('aggproducto')
 
+@login_required(login_url='login')
 def detalle_producto(request, id_producto):
     producto = get_object_or_404(Producto, pk=id_producto)
-    return render(request, 'productos.html', {'producto': producto})
+    imagenes = [producto.imagen1, producto.imagen2, producto.imagen3, producto.imagen4, producto.imagen5]
+    return render(request, 'productos.html', {'producto': producto, 'imagenes' : imagenes})
 
+@login_required(login_url='login')
+@user_passes_test(es_administrador)
 def lista_productos(request):
     productos = Producto.objects.all()
     return render(request, 'admin/lista_productos.html', {'productos': productos})
 
+@login_required(login_url='login')
+@user_passes_test(es_administrador)
 def editar_producto(request, producto_id):
-    # Obtener el producto por id
     producto = get_object_or_404(Producto, id_producto=producto_id)
 
     if request.method == 'POST':
-        # Crear una instancia del formulario con los datos del producto
         form = Product(request.POST, request.FILES, instance=producto)
         
         if form.is_valid():
-            form.save()  # Guardamos los cambios
-            return redirect('catalogo')  # Redirigir a la vista de productos (ajusta la URL a tu necesidad)
+            form.save() 
+            return redirect('catalogo')  
     else:
-        # Mostrar el formulario con los datos actuales del producto
         form = Product(instance=producto)
 
     return render(request, 'admin/editar_producto.html', {'form': form, 'producto': producto})
 
+@login_required(login_url='login')
+@user_passes_test(es_administrador)
 def eliminar_producto(request, producto_id):
     producto = get_object_or_404(Producto, id_producto=producto_id)
-
-    # Eliminar el producto
     producto.delete()
+    return redirect('lista_productos')
 
-    # Redirigir a la lista de productos después de eliminar
-    return redirect('catalogo')  # Cambia 'catalogo' por la vista que te gustaría mostrar después de eliminar
+@login_required(login_url='login')
+def editar_perfil(request):
+    if request.method == 'POST':
+        form = PerfilForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Perfil actualizado con éxito.')
+            return redirect('editar_perfil')
+    else:
+        form = PerfilForm(instance=request.user)
+
+    return render(request, 'editar_perfil.html', {'form': form})
+
+@login_required(login_url='login')
+def ver_carrito(request):
+    carrito, created = Carrito.objects.get_or_create(user=request.user)
+    
+    productos_en_carrito = carrito.carritoproducto_set.all() 
+    total_carrito = 0  
+
+    if request.method == 'POST':
+        for item in productos_en_carrito:
+            cantidad_nueva = int(request.POST.get(f'cantidad_{item.id}'))
+            
+            if cantidad_nueva <= item.producto.cantidad:
+                item.cantidad = cantidad_nueva
+                item.total = item.cantidad * item.producto.precio
+                item.save()
+            else:
+                pass
+
+        return redirect('carrito')
+
+    for item in productos_en_carrito:
+        item.total = item.cantidad * item.producto.precio 
+        total_carrito += item.total  
+        item.save()  
+
+    return render(request, 'carrito.html', {
+        'productos_en_carrito': productos_en_carrito,
+        'total_carrito': total_carrito,
+    })
+
+
+@login_required(login_url='login')
+def agregar_al_carrito(request, producto_id):
+    producto = Producto.objects.get(id_producto=producto_id)
+    
+    carrito, created = Carrito.objects.get_or_create(user=request.user)
+    
+    cantidad = int(request.POST.get('cantidad', 1)) 
+
+    carrito_producto, created = CarritoProducto.objects.get_or_create(
+        carrito=carrito,
+        producto=producto,
+        defaults={'cantidad': 0}
+    )
+    
+    carrito_producto.cantidad += cantidad
+    carrito_producto.total = carrito_producto.cantidad * carrito_producto.producto.precio
+    carrito_producto.save()
+
+    return redirect('carrito')
+
+@login_required(login_url='login')
+def eliminar_del_carrito(request, item_id):
+    carrito = Carrito.objects.get(user=request.user)
+    try:
+        item = CarritoProducto.objects.get(id=item_id, carrito=carrito)
+        item.delete()
+    except CarritoProducto.DoesNotExist:
+        pass 
+
+    return redirect('carrito')
+
+
+@login_required(login_url='login')
+@user_passes_test(es_administrador)
+def lista_usuarios(request):
+    Usuario = get_user_model()  # Obtiene el modelo de usuario personalizado
+    usuarios = Usuario.objects.all()
+    return render(request, 'admin/lista_usuarios.html', {'usuarios': usuarios})
+
+
+@login_required(login_url='login')
+@user_passes_test(es_administrador)
+def editar_usuario(request, usuario_id):
+    Usuario = get_user_model()  # Obtiene el modelo de usuario personalizado
+    usuario = get_object_or_404(Usuario, id=usuario_id)
+
+    if request.method == 'POST':
+        form = UserChangeForm(request.POST, request.FILES, instance=usuario)
+        
+        if form.is_valid():
+            form.save() 
+            return redirect('lista_usuarios')
+    else:
+        form = UserChangeForm(instance=usuario)
+
+    return render(request, 'admin/editar_usuario.html', {'form': form, 'usuario': usuario})
+
+
+@login_required(login_url='login')
+@user_passes_test(es_administrador)
+def eliminar_usuario(request, usuario_id):
+    Usuario = get_user_model()  # Obtiene el modelo de usuario personalizado
+    usuario = get_object_or_404(Usuario, id=usuario_id)
+    usuario.delete()
+    return redirect('lista_usuarios')

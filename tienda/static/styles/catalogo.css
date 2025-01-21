@@ -3,20 +3,20 @@ body{
     margin: 0px;
     padding: 0px;
     background-image: url(../img/Fondos_css/fondo_catalogo.webp);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 }
 
 .superior {
-    background-color: rgba(95, 97, 99, 0.699);
-    color: white;
     display: flex;
     align-items: center;
-    height: 75px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    justify-content: space-between;
+    background-color: rgb(3, 79, 109);
+    padding: 10px;
 }
 
 .menu_superior{
     display: flex;
-    position: absolute;
     align-items: center;
     justify-content: center;
     list-style-type: none;
@@ -35,11 +35,22 @@ body{
 }
 
 #no_sub{
+    color: white;
     text-decoration: none;
+    width: auto;
+    height: auto;
+    padding: 10px;
+    background-color: rgba(3, 79, 109, 0);
+    transition: all 0.3s ease-in-out;
+}
+
+#no_sub:hover{
+    background-color: rgba(3, 79, 109, 0.7);
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
 .aggpro{
-    font-size: 18px;
+    font-size: 16px;
     color: rgb(255, 255, 255);
     text-decoration: none;
     padding: 10px;
@@ -54,11 +65,24 @@ body{
     color: rgb(0, 0, 0);
 }
 
+.pedidos{
+    font-size: 16px;
+    color: rgb(255, 255, 255);
+    text-decoration: none;
+    padding: 10px;
+    margin-right: 5px;
+    background-color: rgb(0, 0, 0);
+    border-radius: 5px;
+    display: inline-block;
+    transition: all 0.3s ease-in-out;
+}
+
 .carro{
     font-size: 18px;
     color: rgb(255, 255, 255);
     text-decoration: none;
     padding: 10px;
+    margin-right: 5px;
     background-color: rgb(0, 0, 0);
     border-radius: 5px;
     display: inline-block;
@@ -70,21 +94,26 @@ body{
     color: rgb(0, 0, 0);
 }
 
-.salir{
-    font-size: 18px;
-    color: rgb(255, 255, 255);
-    text-decoration: none;
-    padding: 10px;
-    background-color: rgb(0, 0, 0);
-    border-radius: 5px;
-    margin-right: 10px;
-    display: inline-block;
-    transition: all 0.3s ease-in-out;
+.avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%; 
+    color: #333; 
+    display: block;
+    margin: 0 auto;
+    margin-left: 5px;
 }
 
-.salir:hover{
-    background-color: rgb(255, 255, 255);
-    color: rgb(0, 0, 0);
+.perfil {
+    position: relative;
+    top: 0;
+    left: 0;
+}
+
+.dropdown-menu {
+    min-width: 200px; 
+    right: 0; 
+    margin-top: 5px;
 }
 
 .product-grid {
@@ -169,4 +198,10 @@ body{
 .ver-producto-btn:hover {
     background-color: rgb(26, 72, 90);
     color: white;
+}
+
+ul{
+    display: flex;
+    align-items: center;
+    margin: 0;
 }
