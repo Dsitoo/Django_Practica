@@ -218,7 +218,13 @@ ul{
 }
 
 .descripcionpro{
-    max-height: 125px;
+    max-height: 105px;
+    overflow: auto;
+    font-size: 20px;
+}
+
+.especificacionespro{
+    max-height: 105px;
     overflow: auto;
     font-size: 20px;
 }
