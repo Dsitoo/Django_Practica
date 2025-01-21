@@ -8,9 +8,15 @@ https://docs.djangoproject.com/en/5.1/howto/deployment/wsgi/
 """
 
 import os
+import sys
+
+# Añadir la ruta al directorio raíz de tu proyecto Django (Django_Practica)
+sys.path.append('/home/DsiDsi/Django_Practica')
+
+# Especificar el módulo de configuración de Django (mysite.settings)
+os.environ['DJANGO_SETTINGS_MODULE', 'mysite.settings']
 
 from django.core.wsgi import get_wsgi_application
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
-
 application = get_wsgi_application()
+
+
