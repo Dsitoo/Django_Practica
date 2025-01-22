@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 from django.conf import settings
-from django.core.files.storage import default_storage
 
 default_image_path = settings.MEDIA_URL + 'uploads/default_P.png'
 
@@ -31,7 +30,7 @@ SECRET_KEY = 'django-insecure-hs=b$3lh=57z5kxczpj@o&)v0&*k+spv451)=&r)609&9ox5+_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["dsidsi.pythonanywhere.com"]
 
 
 # Application definition
