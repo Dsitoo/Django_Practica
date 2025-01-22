@@ -20,9 +20,9 @@ urlpatterns = [
     path('producto/<int:producto_id>/agregar/', views.agregar_al_carrito, name='agregar_al_carrito'),
     path('carrito/<int:item_id>/eliminar/', views.eliminar_del_carrito, name='eliminar_del_carrito'),
     path('usuarios/', views.lista_usuarios, name='lista_usuarios'), 
-     path('usuarios/editar/<int:usuario_id>/', views.editar_usuario, name='editar_usuario'), 
-     path('usuarios/eliminar/<int:usuario_id>/', views.eliminar_usuario, name='eliminar_usuario'),
-
+    path('usuarios/editar/<int:usuario_id>/', views.editar_usuario, name='editar_usuario'), 
+    path('usuarios/eliminar/<int:usuario_id>/', views.eliminar_usuario, name='eliminar_usuario'),
+    path('mis_pedidos/', views.mis_pedidos, name='mis_pedidos'),
 ]   
 
 if settings.DEBUG:

@@ -83,11 +83,12 @@
             <p>Total del carrito: ${{ total_carrito }}</p>
         </div>
         
-        <div class="botones">
+        <<div class="botones">
             <button type="submit" class="btn-primary" id="no_sub">Actualizar Carrito</button>
-            <a id="no_sub" href="{% url 'catalogo' %}">Catalogo</a>
-            <a id="no_sub" href="">Proceder al Pago</a>
+            <a id="no_sub" href="{% url 'catalogo' %}">Catálogo</a>
+            <button type="submit" class="btn-primary" id="no_sub" name="comprar">Comprar</button>
         </div>
+        
     </form>
 {% else %}
     <p>Tu carrito está vacío.</p>

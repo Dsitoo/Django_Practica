@@ -3,18 +3,18 @@
 {% load static %}
 
 {% block titulo %}
-Productos Electrónicos
+    Mis Pedidos
 {% endblock %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'styles/catalogo.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/mis_pedidos.css' %}">
 {% endblock %}
 
 {% block body %}
 <nav class="superior">
     <ul class="menu_superior">
         <li>
-            <a href="#" class="home" id="no_sub">Logo</a>
+            <a href="{% url 'catalogo' %}" class="home" id="no_sub">Logo</a>
         </li>
         {% if user.is_staff %}
         <li class="a_superior">
@@ -28,16 +28,16 @@ Productos Electrónicos
         </li>
         {% endif %}
     </ul>
-    <ul class="menu_superior2">
+    <ul class="menu_superior">
         <li class="a_superior">
-            <a href="{% url 'mis_pedidos' %}" class="pedidos" id="no_sub">Mis Pedidos</a>
+            <a href="" class="pedidos" id="no_sub">Mis Pedidos</a>
         </li>
         <li class="a_superior">
             <a href="{% url 'carrito' %}" class="carro" id="no_sub">
                 <i class="bi bi-cart"></i>
             </a>
         </li>
-        <li class="a_superior perfil"> <!-- Añade la clase perfil aquí -->
+        <li class="a_superior perfil">
             <a href="#" id="" class="perfil" data-bs-toggle="dropdown" aria-expanded="false">
                 <img src="{{ user.foto_perfil.url }}" alt="Foto de perfil" class="avatar">
             </a>
@@ -49,22 +49,37 @@ Productos Electrónicos
         </li>
     </ul>
 </nav>
-
-<div class="product-grid">
-    {% for producto in productos %}
-        {% if producto.id_producto %}
-            <div class="producto-card">
-                <img src="{{ producto.imagen1.url }}" alt="{{ producto.nombre }}" class="producto-imagen">
-                <div class="producto-info">
-                    <p class="nombrepro">{{ producto.nombre }}</p>
-                    <p class="preciopro">Precio: ${{ producto.precio }}</p>
-                    <p class="cantidadpro">Cantidad: {{ producto.cantidad }}</p>
-                </div>
-                <a href="{% url 'detalle_producto' producto.id_producto %}" class="ver-producto-btn">Ver Producto</a>
+<div class="container">
+    <div class="pedidos">
+        <h1>Mis Pedidos</h1>
+    {% if pedidos %}
+        {% for pedido in pedidos %}
+            <h2>Pedido realizado el {{ pedido.fecha }}</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pedido_producto in pedido.pedidoproducto_set.all %}
+                        <tr>
+                            <td>{{ pedido_producto.producto.nombre }}</td>
+                            <td>{{ pedido_producto.cantidad }}</td>
+                            <td>${{ pedido_producto.producto.precio }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="total">
+                <strong>Total: ${{ pedido.total }}</strong>
             </div>
-        {% else %}
-            <p>Error: Producto sin ID</p>
-        {% endif %}
-    {% endfor %}
+        {% endfor %}
+    {% else %}
+        <p>No has realizado ningún pedido.</p>
+    {% endif %}
+    </div>
 </div>
 {% endblock %}

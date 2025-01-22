@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from .models import Producto, Usuario, Carrito, CarritoProducto
+from .models import Producto, Usuario, Carrito, CarritoProducto, Pedido, PedidoProducto
 from .forms import Login, Register, Product, PerfilForm, UserChangeForm
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import authenticate, login, logout, get_user_model
@@ -184,32 +184,55 @@ def editar_perfil(request):
 @login_required(login_url='login')
 def ver_carrito(request):
     carrito, created = Carrito.objects.get_or_create(user=request.user)
-    
-    productos_en_carrito = carrito.carritoproducto_set.all() 
-    total_carrito = 0  
+    productos_en_carrito = carrito.carritoproducto_set.all()
+    total_carrito = 0
 
+    if request.method == 'POST' and 'comprar' in request.POST:
+        pedido = Pedido.objects.create(user=request.user)
+        for item in productos_en_carrito:
+            item.producto.cantidad -= item.cantidad
+            item.producto.save()
+            PedidoProducto.objects.create(
+                pedido=pedido,
+                producto=item.producto,
+                cantidad=item.cantidad
+            )
+        productos_en_carrito.delete()  # Limpiar el carrito después de la compra
+        messages.success(request, 'Compra realizada con éxito.')
+        return redirect('mis_pedidos')
+    
     if request.method == 'POST':
         for item in productos_en_carrito:
             cantidad_nueva = int(request.POST.get(f'cantidad_{item.id}'))
-            
             if cantidad_nueva <= item.producto.cantidad:
                 item.cantidad = cantidad_nueva
                 item.total = item.cantidad * item.producto.precio
                 item.save()
-            else:
-                pass
-
+    
         return redirect('carrito')
 
     for item in productos_en_carrito:
-        item.total = item.cantidad * item.producto.precio 
-        total_carrito += item.total  
-        item.save()  
+        item.total = item.cantidad * item.producto.precio
+        total_carrito += item.total
+        item.save()
 
     return render(request, 'carrito.html', {
         'productos_en_carrito': productos_en_carrito,
         'total_carrito': total_carrito,
     })
+
+
+    for item in productos_en_carrito:
+        item.total = item.cantidad * item.producto.precio
+        total_carrito += item.total
+        item.save()
+
+    return render(request, 'carrito.html', {
+        'productos_en_carrito': productos_en_carrito,
+        'total_carrito': total_carrito,
+    })
+
+
 
 
 @login_required(login_url='login')
@@ -277,3 +300,16 @@ def eliminar_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     usuario.delete()
     return redirect('lista_usuarios')
+
+@login_required(login_url='login')
+def mis_pedidos(request):
+    pedidos = Pedido.objects.filter(user=request.user).order_by('-fecha')
+    
+    # Calculamos el total de cada pedido
+    for pedido in pedidos:
+        total_pedido = 0
+        for pedido_producto in pedido.pedidoproducto_set.all():
+            total_pedido += pedido_producto.cantidad * pedido_producto.producto.precio
+        pedido.total = total_pedido  # Añadimos el total calculado al pedido
+        
+    return render(request, 'mis_pedidos.html', {'pedidos': pedidos})
